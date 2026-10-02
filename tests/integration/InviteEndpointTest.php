@@ -13,6 +13,8 @@ namespace FoF\DiscordAutolink\Tests\integration;
 
 use Flarum\Testing\integration\TestCase;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
@@ -173,5 +175,30 @@ class InviteEndpointTest extends TestCase
         $this->assertSame(404, $this->getInvite('expired123')->getStatusCode());
         $this->assertSame(404, $this->getInvite('expired123')->getStatusCode());
         $this->assertCount(1, $this->discordRequests);
+    }
+
+    #[Test]
+    public function malformed_codes_are_rejected_without_asking_discord()
+    {
+        $this->fakeDiscord([]);
+
+        $response = $this->getInvite('not.a..code');
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertCount(0, $this->discordRequests);
+    }
+
+    #[Test]
+    public function a_discord_outage_is_a_bad_gateway_and_is_not_cached()
+    {
+        $this->fakeDiscord([
+            new ConnectException('Connection timed out', new Request('GET', 'https://discord.com/api/v10/invites/G8MGEsC53')),
+            new Response(429, [], '{"message": "You are being rate limited.", "retry_after": 1.5, "global": false}'),
+            $this->fixture('invite.json'),
+        ]);
+
+        $this->assertSame(502, $this->getInvite('G8MGEsC53')->getStatusCode());
+        $this->assertSame(502, $this->getInvite('G8MGEsC53')->getStatusCode());
+        $this->assertSame(200, $this->getInvite('G8MGEsC53')->getStatusCode());
     }
 }

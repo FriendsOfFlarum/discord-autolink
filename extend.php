@@ -25,7 +25,9 @@ return [
         ->register(DiscordServiceProvider::class),
 
     (new Extend\ErrorHandling())
-        ->type(Discord\UnknownInviteException::class, 'not_found'),
+        ->type(Discord\UnknownInviteException::class, 'not_found')
+        ->type(Discord\DiscordUnavailableException::class, 'discord_unavailable')
+        ->status('discord_unavailable', 502),
 
     (new Extend\Routes('api'))
         ->get('/discord/invites/{code}', 'fof-discord-autolink.invites.show', Api\Controller\ShowInviteController::class),

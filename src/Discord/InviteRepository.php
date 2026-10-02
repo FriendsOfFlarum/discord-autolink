@@ -14,6 +14,7 @@ namespace FoF\DiscordAutolink\Discord;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * Looks up invites on Discord's public, unauthenticated invite API and
@@ -53,6 +54,7 @@ class InviteRepository
 
     /**
      * @throws UnknownInviteException
+     * @throws DiscordUnavailableException
      *
      * @return array<string, mixed>
      */
@@ -82,6 +84,7 @@ class InviteRepository
 
     /**
      * @throws UnknownInviteException
+     * @throws DiscordUnavailableException
      *
      * @return array<string, mixed>
      */
@@ -102,11 +105,16 @@ class InviteRepository
                 throw new UnknownInviteException("Unknown Discord invite: $code", 0, $e);
             }
 
-            throw $e;
+            throw new DiscordUnavailableException($e->getMessage(), 0, $e);
+        } catch (GuzzleException $e) {
+            throw new DiscordUnavailableException($e->getMessage(), 0, $e);
         }
 
-        /** @var array<string, mixed> $invite */
         $invite = json_decode((string) $response->getBody(), true);
+
+        if (! is_array($invite) || ! isset($invite['code'])) {
+            throw new DiscordUnavailableException("Unexpected response from Discord for invite: $code");
+        }
 
         return $this->normalise($invite);
     }
