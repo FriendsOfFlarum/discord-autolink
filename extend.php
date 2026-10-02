@@ -21,6 +21,12 @@ return [
 
     new Extend\Locales(__DIR__.'/locale'),
 
+    (new Extend\ServiceProvider())
+        ->register(DiscordServiceProvider::class),
+
+    (new Extend\Routes('api'))
+        ->get('/discord/invites/{code}', 'fof-discord-autolink.invites.show', Api\Controller\ShowInviteController::class),
+
     (new Extend\Formatter())
         ->configure(function (Configurator $configurator) {
             $configurator->plugins->set('DiscordInviteAutolink', Plugins\DiscordInvite\Configurator::class);
