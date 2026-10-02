@@ -119,4 +119,26 @@ class FormatterTest extends TestCase
         $this->assertStringContainsString('href="https://discord.com/channels/360670804914208769/385414934844145664/1555689993194704978"', $html);
         $this->assertOpensInNewTab($html);
     }
+
+    #[Test]
+    public function it_renders_a_channel_link_as_a_channel_chip()
+    {
+        $html = $this->render('Chat in https://ptb.discord.com/channels/360670804914208769/385414934844145664 please');
+
+        $this->assertStringContainsString('DiscordEmbed--channel', $html);
+        $this->assertStringNotContainsString('DiscordEmbed--message', $html);
+        $this->assertStringContainsString('href="https://discord.com/channels/360670804914208769/385414934844145664"', $html);
+        $this->assertStringContainsString('</a> please', $html);
+        $this->assertOpensInNewTab($html);
+    }
+
+    #[Test]
+    public function it_renders_a_direct_message_link_as_a_message_chip()
+    {
+        $html = $this->render('https://discord.com/channels/@me/385414934844145664/1555689993194704978');
+
+        $this->assertStringContainsString('DiscordEmbed--message', $html);
+        $this->assertStringContainsString('href="https://discord.com/channels/@me/385414934844145664/1555689993194704978"', $html);
+        $this->assertOpensInNewTab($html);
+    }
 }

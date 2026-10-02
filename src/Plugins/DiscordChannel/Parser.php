@@ -20,11 +20,17 @@ class Parser extends ParserBase
         foreach ($matches as $m) {
             $tag = $this->parser->addSelfClosingTag($this->config['tagName'], $m[0][1], \strlen($m[0][0]), -10);
 
+            $hasMessage = isset($m[3]) && $m[3][1] >= 0;
+
             $tag->setAttributes([
                 'guild'   => $m[1][0],
                 'channel' => $m[2][0],
-                'message' => $m[3][0],
+                'type'    => $hasMessage ? 'message' : 'channel',
             ]);
+
+            if ($hasMessage) {
+                $tag->setAttribute('message', $m[3][0]);
+            }
         }
     }
 }
