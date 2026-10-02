@@ -6,7 +6,8 @@ import type Mithril from 'mithril';
 import type { DiscordEvent, DiscordInvite } from '../types';
 
 export interface DiscordInviteCardAttrs extends ComponentAttrs {
-  invite: DiscordInvite;
+  /** Null when Discord does not know the invite: it expired, was revoked or never existed. */
+  invite: DiscordInvite | null;
 }
 
 /**
@@ -15,6 +16,8 @@ export interface DiscordInviteCardAttrs extends ComponentAttrs {
  */
 export default class DiscordInviteCard extends Component<DiscordInviteCardAttrs> {
   view() {
+    if (!this.attrs.invite) return this.invalid();
+
     const { guild, event } = this.attrs.invite;
 
     return (
@@ -33,6 +36,23 @@ export default class DiscordInviteCard extends Component<DiscordInviteCardAttrs>
             <span className="DiscordInviteCard-stats">{this.stats()}</span>
           </span>
           <span className="Button Button--primary DiscordInviteCard-join">{app.translator.trans('fof-discord-autolink.forum.invite.join')}</span>
+        </span>
+      </span>
+    );
+  }
+
+  invalid(): Mithril.Children {
+    return (
+      <span className="DiscordInviteCard DiscordInviteCard--invalid">
+        <span className="DiscordInviteCard-heading">{app.translator.trans('fof-discord-autolink.forum.invite.invalid_heading')}</span>
+        <span className="DiscordInviteCard-body">
+          <span className="DiscordInviteCard-icon DiscordInviteCard-icon--invalid" aria-hidden="true">
+            <i className="fas fa-times" />
+          </span>
+          <span className="DiscordInviteCard-info">
+            <span className="DiscordInviteCard-name">{app.translator.trans('fof-discord-autolink.forum.invite.invalid_title')}</span>
+            <span className="DiscordInviteCard-stats">{app.translator.trans('fof-discord-autolink.forum.invite.invalid_text')}</span>
+          </span>
         </span>
       </span>
     );
@@ -84,7 +104,7 @@ export default class DiscordInviteCard extends Component<DiscordInviteCardAttrs>
   }
 
   icon(): Mithril.Children {
-    const { guild } = this.attrs.invite;
+    const { guild } = this.attrs.invite!;
 
     if (guild.iconUrl) {
       return <img className="DiscordInviteCard-icon" src={guild.iconUrl} alt="" loading="lazy" />;
@@ -106,7 +126,7 @@ export default class DiscordInviteCard extends Component<DiscordInviteCardAttrs>
   }
 
   badge(): Mithril.Children {
-    const { guild } = this.attrs.invite;
+    const { guild } = this.attrs.invite!;
     const type = guild.verified ? 'verified' : guild.partnered ? 'partnered' : null;
 
     if (!type) return null;
@@ -121,7 +141,7 @@ export default class DiscordInviteCard extends Component<DiscordInviteCardAttrs>
   }
 
   stats(): Mithril.Children {
-    const { guild } = this.attrs.invite;
+    const { guild } = this.attrs.invite!;
 
     return [
       guild.onlineCount !== null && (

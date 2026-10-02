@@ -40,6 +40,9 @@ beforeAll(() => {
     'fof-discord-autolink.forum.invite.members': '{count} Members',
     'fof-discord-autolink.forum.invite.join': 'Join',
     'fof-discord-autolink.forum.invite.verified': 'Verified',
+    'fof-discord-autolink.forum.invite.invalid_heading': "You've been invited to join a server, but…",
+    'fof-discord-autolink.forum.invite.invalid_title': 'Invalid Invite',
+    'fof-discord-autolink.forum.invite.invalid_text': 'This invite may be expired, or you might not have permission to join.',
     'fof-discord-autolink.forum.event.heading': "You've been invited to an event",
     'fof-discord-autolink.forum.event.interested': '{count} interested',
     'fof-discord-autolink.forum.event.active': 'Happening now',
@@ -145,5 +148,17 @@ describe('DiscordInviteCard for an event invite', () => {
 
     expect(text(card, '.DiscordInviteCard-eventTime')).toBe(label);
     expect(card).toHaveElement(`.DiscordInviteCard-eventTime--${status}`);
+  });
+});
+
+describe('DiscordInviteCard for an invalid invite', () => {
+  it('explains that the invite is invalid, without a join button', () => {
+    const card = mq(m(DiscordInviteCard, { invite: null }));
+
+    expect(card).toHaveElement('.DiscordInviteCard--invalid');
+    expect(text(card, '.DiscordInviteCard-heading')).toBe("You've been invited to join a server, but…");
+    expect(text(card, '.DiscordInviteCard-name')).toBe('Invalid Invite');
+    expect(text(card, '.DiscordInviteCard-stats')).toBe('This invite may be expired, or you might not have permission to join.');
+    expect(card).not.toHaveElement('.DiscordInviteCard-join');
   });
 });
