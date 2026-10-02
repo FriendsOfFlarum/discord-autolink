@@ -12,6 +12,7 @@
 namespace FoF\DiscordAutolink;
 
 use Flarum\Extend;
+use s9e\TextFormatter\Configurator;
 
 return [
     (new Extend\Frontend('forum'))
@@ -19,4 +20,9 @@ return [
         ->css(__DIR__.'/less/forum.less'),
 
     new Extend\Locales(__DIR__.'/locale'),
+
+    (new Extend\Formatter())
+        ->configure(function (Configurator $configurator) {
+            $configurator->plugins->set('DiscordInviteAutolink', Plugins\DiscordInvite\Configurator::class);
+        }),
 ];
