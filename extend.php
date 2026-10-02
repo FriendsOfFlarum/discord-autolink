@@ -29,6 +29,9 @@ return [
         ->type(Discord\DiscordUnavailableException::class, 'discord_unavailable')
         ->status('discord_unavailable', 502),
 
+    (new Extend\ThrottleApi())
+        ->set('fof-discord-autolink.invites', Api\ThrottleInviteLookups::class),
+
     (new Extend\Routes('api'))
         ->get('/discord/invites/{code}', 'fof-discord-autolink.invites.show', Api\Controller\ShowInviteController::class),
 

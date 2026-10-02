@@ -11,6 +11,7 @@
 
 namespace FoF\DiscordAutolink\Tests\integration;
 
+use Carbon\Carbon;
 use Flarum\Testing\integration\TestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
@@ -19,6 +20,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
+use Laminas\Diactoros\ServerRequest;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -218,5 +220,30 @@ class InviteEndpointTest extends TestCase
         $this->assertTrue($guild['verified']);
         $this->assertFalse($guild['partnered']);
         $this->assertSame('Forums made simple.', $guild['description']);
+    }
+
+    #[Test]
+    public function lookups_are_throttled_per_ip_address()
+    {
+        // Keep every request inside one throttle window.
+        Carbon::setTestNow('2026-10-09 18:00:10');
+
+        $this->fakeDiscord([$this->fixture('invite.json')]);
+
+        for ($i = 0; $i < 60; $i++) {
+            $this->assertSame(200, $this->getInvite('G8MGEsC53')->getStatusCode(), "Request $i was throttled too early");
+        }
+
+        $this->assertSame(429, $this->getInvite('G8MGEsC53')->getStatusCode());
+
+        $fromElsewhere = $this->send(
+            new ServerRequest(['REMOTE_ADDR' => '203.0.113.9'], [], '/api/discord/invites/G8MGEsC53', 'GET')
+        );
+        $this->assertSame(200, $fromElsewhere->getStatusCode());
+
+        Carbon::setTestNow('2026-10-09 18:01:10');
+        $this->assertSame(200, $this->getInvite('G8MGEsC53')->getStatusCode(), 'The limit should reset each minute');
+
+        Carbon::setTestNow();
     }
 }
