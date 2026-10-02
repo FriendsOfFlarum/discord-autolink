@@ -139,4 +139,39 @@ class InviteEndpointTest extends TestCase
         $sent = $this->discordRequests[0]['request'];
         $this->assertSame('https://discord.com/api/v10/invites/te7dMZm8?with_counts=true&guild_scheduled_event_id=1555683235751792691', (string) $sent->getUri());
     }
+
+    #[Test]
+    public function repeat_lookups_are_served_from_cache()
+    {
+        $this->fakeDiscord([$this->fixture('invite.json'), $this->fixture('event-invite.json')]);
+
+        $this->assertSame(200, $this->getInvite('G8MGEsC53')->getStatusCode());
+        $second = $this->getInvite('G8MGEsC53');
+
+        $this->assertSame(200, $second->getStatusCode());
+        $this->assertSame('Flarum', $this->json($second)['guild']['name']);
+        $this->assertCount(1, $this->discordRequests);
+    }
+
+    #[Test]
+    public function the_same_invite_with_and_without_an_event_is_cached_separately()
+    {
+        $this->fakeDiscord([$this->fixture('event-invite.json'), $this->fixture('event-invite.json')]);
+
+        $this->getInvite('te7dMZm8');
+        $withEvent = $this->getInvite('te7dMZm8', ['event' => '1555683235751792691']);
+
+        $this->assertCount(2, $this->discordRequests);
+        $this->assertSame('Good things come in twos', $this->json($withEvent)['event']['name']);
+    }
+
+    #[Test]
+    public function unknown_invites_are_cached_too()
+    {
+        $this->fakeDiscord([new Response(404, [], '{"message": "Unknown Invite", "code": 10006}')]);
+
+        $this->assertSame(404, $this->getInvite('expired123')->getStatusCode());
+        $this->assertSame(404, $this->getInvite('expired123')->getStatusCode());
+        $this->assertCount(1, $this->discordRequests);
+    }
 }

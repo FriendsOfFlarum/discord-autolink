@@ -12,6 +12,7 @@
 namespace FoF\DiscordAutolink\Discord;
 
 use GuzzleHttp\ClientInterface;
+use Illuminate\Contracts\Cache\Repository as Cache;
 use GuzzleHttp\Exception\ClientException;
 
 /**
@@ -25,6 +26,16 @@ class InviteRepository
     public const CDN_URL = 'https://cdn.discordapp.com';
 
     /**
+     * Seconds to remember a found invite. Member counts drift, so keep this short.
+     */
+    protected const TTL = 600;
+
+    /**
+     * Seconds to remember that an invite does not exist.
+     */
+    protected const UNKNOWN_TTL = 300;
+
+    /**
      * Discord's GUILD_SCHEDULED_EVENT_STATUS values.
      */
     protected const EVENT_STATUSES = [
@@ -35,7 +46,8 @@ class InviteRepository
     ];
 
     public function __construct(
-        protected ClientInterface $http
+        protected ClientInterface $http,
+        protected Cache $cache
     ) {
     }
 
@@ -45,6 +57,35 @@ class InviteRepository
      * @return array<string, mixed>
      */
     public function find(string $code, ?string $eventId = null): array
+    {
+        $key = 'fof-discord-autolink.invite.'.$code.'.'.($eventId ?? '');
+
+        $invite = $this->cache->get($key);
+
+        if ($invite === null) {
+            try {
+                $invite = $this->fetch($code, $eventId);
+                $this->cache->put($key, $invite, self::TTL);
+            } catch (UnknownInviteException $e) {
+                $this->cache->put($key, false, self::UNKNOWN_TTL);
+
+                throw $e;
+            }
+        }
+
+        if ($invite === false) {
+            throw new UnknownInviteException("Unknown Discord invite: $code");
+        }
+
+        return $invite;
+    }
+
+    /**
+     * @throws UnknownInviteException
+     *
+     * @return array<string, mixed>
+     */
+    protected function fetch(string $code, ?string $eventId): array
     {
         $query = ['with_counts' => 'true'];
 
