@@ -125,4 +125,17 @@ describe('hydrateDiscordEmbeds', () => {
     expect(root.querySelector('.DiscordEmbed-label')!.textContent).toBe('discord.gg/G8MGEsC53');
     expect(root.querySelector('a')!.classList.contains('DiscordEmbed--card')).toBe(false);
   });
+
+  it('labels channel, message and event chips without asking the API', () => {
+    const request = apiResponds(async () => invite);
+    const chip = (type: string) =>
+      `<a class="DiscordEmbed DiscordEmbed--${type}" href="#"><i class="fab fa-discord"></i><span class="DiscordEmbed-label" data-discord-label="${type}"></span></a>`;
+    const root = post(chip('channel') + chip('message') + chip('event'));
+
+    hydrateDiscordEmbeds(root);
+
+    const labels = Array.from(root.querySelectorAll('.DiscordEmbed-label')).map((el) => el.textContent);
+    expect(labels).toEqual(['Discord channel', 'Discord message', 'Discord event']);
+    expect(request).not.toHaveBeenCalled();
+  });
 });

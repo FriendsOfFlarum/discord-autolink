@@ -1,13 +1,26 @@
+import app from 'flarum/forum/app';
 import m from 'mithril';
 import DiscordInviteCard from '../components/DiscordInviteCard';
 import fetchInvite from './fetchInvite';
 
+const LABELS = ['channel', 'message', 'event'];
+
 /**
- * Upgrade the server-rendered Discord invite links inside `root` to rich cards.
+ * Upgrade the server-rendered Discord links inside `root`: invite links become
+ * rich cards, and channel/message/event chips get a translated label.
  *
- * Safe to call repeatedly on the same content: links already being upgraded are skipped.
+ * Safe to call repeatedly on the same content: links already upgraded are skipped.
  */
 export default function hydrateDiscordEmbeds(root: ParentNode): void {
+  // The formatter cannot translate, so it leaves these labels empty for us to fill.
+  root.querySelectorAll<HTMLElement>('[data-discord-label]:empty').forEach((label) => {
+    const type = label.getAttribute('data-discord-label')!;
+
+    if (LABELS.includes(type)) {
+      label.textContent = app.translator.trans(`fof-discord-autolink.forum.label.${type}`, {}, true);
+    }
+  });
+
   root.querySelectorAll<HTMLAnchorElement>('a[data-discord-invite]:not([data-discord-hydrated])').forEach((link) => {
     link.setAttribute('data-discord-hydrated', 'loading');
 
