@@ -24,5 +24,6 @@ return [
     (new Extend\Formatter())
         ->configure(function (Configurator $configurator) {
             $configurator->plugins->set('DiscordInviteAutolink', Plugins\DiscordInvite\Configurator::class);
+            $configurator->plugins->set('DiscordChannelAutolink', Plugins\DiscordChannel\Configurator::class);
         }),
 ];
