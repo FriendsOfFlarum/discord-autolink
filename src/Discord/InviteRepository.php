@@ -127,6 +127,7 @@ class InviteRepository
     protected function normalise(array $invite): array
     {
         $guild = $invite['guild'] ?? [];
+        $features = $guild['features'] ?? [];
         $event = $invite['guild_scheduled_event'] ?? null;
 
         return [
@@ -135,9 +136,12 @@ class InviteRepository
             'guild'   => [
                 'id'          => $guild['id'] ?? null,
                 'name'        => $guild['name'] ?? null,
+                'description' => $guild['description'] ?? null,
                 'iconUrl'     => $this->iconUrl($guild),
                 'memberCount' => $invite['approximate_member_count'] ?? null,
                 'onlineCount' => $invite['approximate_presence_count'] ?? null,
+                'verified'    => in_array('VERIFIED', $features, true),
+                'partnered'   => in_array('PARTNERED', $features, true),
             ],
             'channel' => isset($invite['channel']['name']) ? ['name' => $invite['channel']['name']] : null,
             'event'   => $event ? $this->normaliseEvent($event, $invite['channel'] ?? null) : null,
@@ -176,6 +180,9 @@ class InviteRepository
             return null;
         }
 
-        return sprintf('%s/icons/%s/%s.png?size=128', self::CDN_URL, $guild['id'], $guild['icon']);
+        // Hashes of animated icons are prefixed with "a_".
+        $extension = str_starts_with($guild['icon'], 'a_') ? 'gif' : 'png';
+
+        return sprintf('%s/icons/%s/%s.%s?size=128', self::CDN_URL, $guild['id'], $guild['icon'], $extension);
     }
 }

@@ -201,4 +201,22 @@ class InviteEndpointTest extends TestCase
         $this->assertSame(502, $this->getInvite('G8MGEsC53')->getStatusCode());
         $this->assertSame(200, $this->getInvite('G8MGEsC53')->getStatusCode());
     }
+
+    #[Test]
+    public function animated_icons_and_verification_badges_are_reported()
+    {
+        $invite = json_decode((string) file_get_contents(__DIR__.'/../fixtures/invite.json'), true);
+        $invite['guild']['icon'] = 'a_42da41124318a98737aaf686872845a9';
+        $invite['guild']['features'][] = 'VERIFIED';
+        $invite['guild']['description'] = 'Forums made simple.';
+
+        $this->fakeDiscord([new Response(200, [], (string) json_encode($invite))]);
+
+        $guild = $this->json($this->getInvite('G8MGEsC53'))['guild'];
+
+        $this->assertSame('https://cdn.discordapp.com/icons/360670804914208769/a_42da41124318a98737aaf686872845a9.gif?size=128', $guild['iconUrl']);
+        $this->assertTrue($guild['verified']);
+        $this->assertFalse($guild['partnered']);
+        $this->assertSame('Forums made simple.', $guild['description']);
+    }
 }
