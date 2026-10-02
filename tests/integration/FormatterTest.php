@@ -151,4 +151,29 @@ class FormatterTest extends TestCase
         $this->assertStringContainsString('href="https://discord.com/events/360670804914208769/1555683235751792691"', $html);
         $this->assertOpensInNewTab($html);
     }
+
+    #[Test]
+    public function it_does_not_brand_lookalike_hosts_as_discord()
+    {
+        $html = $this->render('https://discord.gg.example.com/G8MGEsC53 https://notdiscord.gg/G8MGEsC53 https://fakediscord.com/invite/G8MGEsC53 https://discord.com.example.com/channels/360670804914208769/385414934844145664');
+
+        $this->assertStringNotContainsString('DiscordEmbed', $html);
+    }
+
+    #[Test]
+    public function it_leaves_a_discord_url_nested_inside_another_url_alone()
+    {
+        $html = $this->render('https://example.com/redirect?to=https://discord.gg/G8MGEsC53');
+
+        $this->assertStringNotContainsString('DiscordEmbed', $html);
+        $this->assertStringContainsString('href="https://example.com/redirect?to=https://discord.gg/G8MGEsC53"', $html);
+    }
+
+    #[Test]
+    public function it_keeps_the_text_of_a_markdown_link_to_an_invite()
+    {
+        $html = $this->render('[Join our community](https://discord.gg/G8MGEsC53)');
+
+        $this->assertStringContainsString('Join our community', $html);
+    }
 }
