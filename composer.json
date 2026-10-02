@@ -1,0 +1,96 @@
+{
+    "name": "fof/discord-autolink",
+    "description": "Turn Discord invite, event, channel and message links in posts into rich cards",
+    "keywords": [
+        "flarum",
+        "discord",
+        "autolink",
+        "invite",
+        "embed"
+    ],
+    "type": "flarum-extension",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/FriendsOfFlarum/discord-autolink/issues",
+        "source": "https://github.com/FriendsOfFlarum/discord-autolink"
+    },
+    "homepage": "https://friendsofflarum.org",
+    "funding": [
+        {
+            "type": "website",
+            "url": "https://opencollective.com/fof/donate"
+        }
+    ],
+    "require": {
+        "flarum/core": "^2.0.0",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "authors": [
+        {
+            "name": "FoF Team",
+            "email": "team@friendsofflarum.org",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "FoF\\DiscordAutolink\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FoF\\DiscordAutolink\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-2.x": "2.x-dev"
+        },
+        "flarum-extension": {
+            "title": "FoF Discord Autolink",
+            "category": "feature",
+            "icon": {
+                "name": "fab fa-discord",
+                "backgroundColor": "#5865F2",
+                "color": "#fff"
+            }
+        },
+        "flarum-cli": {
+            "modules": {
+                "backendTesting": true,
+                "frontendTesting": true,
+                "githubActions": true,
+                "js": true,
+                "jsCommon": false,
+                "css": true,
+                "locale": true,
+                "prettier": true,
+                "typescript": true
+            }
+        }
+    },
+    "scripts": {
+        "test": [
+            "@test:unit",
+            "@test:integration"
+        ],
+        "test:unit": "phpunit -c tests/phpunit.unit.xml",
+        "test:integration": "phpunit -c tests/phpunit.integration.xml",
+        "test:setup": "@php tests/integration/setup.php",
+        "analyse:phpstan": "phpstan analyse",
+        "clear-cache:phpstan": "phpstan clear-result-cache"
+    },
+    "scripts-descriptions": {
+        "test": "Runs all tests.",
+        "test:unit": "Runs all unit tests.",
+        "test:integration": "Runs all integration tests.",
+        "test:setup": "Sets up a database for use with integration tests. Execute this only once.",
+        "analyse:phpstan": "Run static analysis"
+    },
+    "require-dev": {
+        "flarum/testing": "^2.0.0",
+        "flarum/phpstan": "^2.0.0"
+    },
+    "minimum-stability": "beta",
+    "prefer-stable": true
+}
