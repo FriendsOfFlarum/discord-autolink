@@ -25,5 +25,6 @@ return [
         ->configure(function (Configurator $configurator) {
             $configurator->plugins->set('DiscordInviteAutolink', Plugins\DiscordInvite\Configurator::class);
             $configurator->plugins->set('DiscordChannelAutolink', Plugins\DiscordChannel\Configurator::class);
+            $configurator->plugins->set('DiscordEventAutolink', Plugins\DiscordEvent\Configurator::class);
         }),
 ];

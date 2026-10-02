@@ -141,4 +141,14 @@ class FormatterTest extends TestCase
         $this->assertStringContainsString('href="https://discord.com/channels/@me/385414934844145664/1555689993194704978"', $html);
         $this->assertOpensInNewTab($html);
     }
+
+    #[Test]
+    public function it_renders_a_scheduled_event_page_link_as_an_event_chip()
+    {
+        $html = $this->render('https://discord.com/events/360670804914208769/1555683235751792691');
+
+        $this->assertStringContainsString('DiscordEmbed--event', $html);
+        $this->assertStringContainsString('href="https://discord.com/events/360670804914208769/1555683235751792691"', $html);
+        $this->assertOpensInNewTab($html);
+    }
 }
