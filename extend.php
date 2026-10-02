@@ -24,6 +24,9 @@ return [
     (new Extend\ServiceProvider())
         ->register(DiscordServiceProvider::class),
 
+    (new Extend\ErrorHandling())
+        ->type(Discord\UnknownInviteException::class, 'not_found'),
+
     (new Extend\Routes('api'))
         ->get('/discord/invites/{code}', 'fof-discord-autolink.invites.show', Api\Controller\ShowInviteController::class),
 

@@ -98,4 +98,17 @@ class InviteEndpointTest extends TestCase
         $sent = $this->discordRequests[0]['request'];
         $this->assertSame('https://discord.com/api/v10/invites/G8MGEsC53?with_counts=true', (string) $sent->getUri());
     }
+
+    #[Test]
+    public function an_unknown_or_expired_invite_is_not_found()
+    {
+        $this->fakeDiscord([
+            new Response(404, ['Content-Type' => 'application/json'], '{"message": "Unknown Invite", "code": 10006}'),
+        ]);
+
+        $response = $this->getInvite('expired123');
+
+        $this->assertSame(404, $response->getStatusCode(), (string) $response->getBody());
+        $this->assertSame('not_found', $this->json($response)['errors'][0]['code']);
+    }
 }

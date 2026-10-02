@@ -12,6 +12,7 @@
 namespace FoF\DiscordAutolink\Discord;
 
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\ClientException;
 
 /**
  * Looks up invites on Discord's public, unauthenticated invite API and
@@ -29,13 +30,23 @@ class InviteRepository
     }
 
     /**
+     * @throws UnknownInviteException
+     *
      * @return array<string, mixed>
      */
     public function find(string $code): array
     {
-        $response = $this->http->request('GET', self::API_URL.'/invites/'.rawurlencode($code), [
-            'query' => ['with_counts' => 'true'],
-        ]);
+        try {
+            $response = $this->http->request('GET', self::API_URL.'/invites/'.rawurlencode($code), [
+                'query' => ['with_counts' => 'true'],
+            ]);
+        } catch (ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 404) {
+                throw new UnknownInviteException("Unknown Discord invite: $code", 0, $e);
+            }
+
+            throw $e;
+        }
 
         /** @var array<string, mixed> $invite */
         $invite = json_decode((string) $response->getBody(), true);
