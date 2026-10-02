@@ -2,6 +2,7 @@ import bootstrapForum from '@flarum/jest-config/src/bootstrap/forum';
 import app from 'flarum/forum/app';
 import m from 'mithril';
 import mq from 'mithril-query';
+import dayjs from 'dayjs';
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import DiscordInviteCard from '../../src/forum/components/DiscordInviteCard';
 import type { DiscordInvite } from '../../src/forum/types';
@@ -28,6 +29,9 @@ function text(card: ReturnType<typeof mq>, selector: string): string | null {
 }
 
 beforeAll(() => {
+  // In the browser, Flarum exposes dayjs as a global; @flarum/jest-config does not.
+  (globalThis as any).dayjs = dayjs;
+
   bootstrapForum();
 
   app.translator.addTranslations({
@@ -36,6 +40,11 @@ beforeAll(() => {
     'fof-discord-autolink.forum.invite.members': '{count} Members',
     'fof-discord-autolink.forum.invite.join': 'Join',
     'fof-discord-autolink.forum.invite.verified': 'Verified',
+    'fof-discord-autolink.forum.event.heading': "You've been invited to an event",
+    'fof-discord-autolink.forum.event.interested': '{count} interested',
+    'fof-discord-autolink.forum.event.active': 'Happening now',
+    'fof-discord-autolink.forum.event.completed': 'This event has ended',
+    'fof-discord-autolink.forum.event.canceled': 'This event was cancelled',
     'fof-discord-autolink.forum.invite.partnered': 'Discord Partner',
   });
 });
@@ -84,5 +93,57 @@ describe('DiscordInviteCard badges', () => {
     const card = mq(m(DiscordInviteCard, { invite: serverInvite }));
 
     expect(card).not.toHaveElement('.DiscordInviteCard-badge');
+  });
+});
+
+const eventInvite: DiscordInvite = {
+  ...serverInvite,
+  code: 'te7dMZm8',
+  url: 'https://discord.gg/te7dMZm8?event=1555683235751792691',
+  channel: { name: 'flarum-stage' },
+  event: {
+    id: '1555683235751792691',
+    name: 'Good things come in twos',
+    description: 'Two releases, one stage.',
+    startsAt: '2026-10-09T18:00:00+00:00',
+    endsAt: null,
+    status: 'scheduled',
+    interestedCount: 2,
+    imageUrl: null,
+    channelName: 'flarum-stage',
+  },
+};
+
+describe('DiscordInviteCard for an event invite', () => {
+  it('shows the event, when it starts, and who is interested', () => {
+    const card = mq(m(DiscordInviteCard, { invite: eventInvite }));
+
+    expect(card).toHaveElement('.DiscordInviteCard--event');
+    expect(text(card, '.DiscordInviteCard-heading')).toBe("You've been invited to an event");
+    expect(text(card, '.DiscordInviteCard-eventTime')).toBe('Fri, Oct 9, 2026 6:00 PM');
+    expect(text(card, '.DiscordInviteCard-eventName')).toBe('Good things come in twos');
+    expect(text(card, '.DiscordInviteCard-eventDescription')).toBe('Two releases, one stage.');
+    expect(text(card, '.DiscordInviteCard-eventInterested')).toBe('2 interested');
+    expect(text(card, '.DiscordInviteCard-eventChannel')).toBe('flarum-stage');
+    expect(text(card, '.DiscordInviteCard-name')).toBe('Flarum');
+  });
+
+  it('shows the event image when there is one', () => {
+    const invite = { ...eventInvite, event: { ...eventInvite.event!, imageUrl: 'https://cdn.discordapp.com/guild-events/1/abc.png?size=512' } };
+    const card = mq(m(DiscordInviteCard, { invite }));
+
+    expect(card).toHaveElementAttr('img.DiscordInviteCard-eventImage', 'src', 'https://cdn.discordapp.com/guild-events/1/abc.png?size=512');
+  });
+
+  it.each([
+    ['active', 'Happening now'],
+    ['completed', 'This event has ended'],
+    ['canceled', 'This event was cancelled'],
+  ] as const)('describes a %s event instead of its start time', (status, label) => {
+    const invite = { ...eventInvite, event: { ...eventInvite.event!, status } };
+    const card = mq(m(DiscordInviteCard, { invite }));
+
+    expect(text(card, '.DiscordInviteCard-eventTime')).toBe(label);
+    expect(card).toHaveElement(`.DiscordInviteCard-eventTime--${status}`);
   });
 });

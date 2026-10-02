@@ -3,7 +3,7 @@ import Component from 'flarum/common/Component';
 import formatNumber from 'flarum/common/utils/formatNumber';
 import type { ComponentAttrs } from 'flarum/common/Component';
 import type Mithril from 'mithril';
-import type { DiscordInvite } from '../types';
+import type { DiscordEvent, DiscordInvite } from '../types';
 
 export interface DiscordInviteCardAttrs extends ComponentAttrs {
   invite: DiscordInvite;
@@ -15,11 +15,14 @@ export interface DiscordInviteCardAttrs extends ComponentAttrs {
  */
 export default class DiscordInviteCard extends Component<DiscordInviteCardAttrs> {
   view() {
-    const { guild } = this.attrs.invite;
+    const { guild, event } = this.attrs.invite;
 
     return (
-      <span className="DiscordInviteCard">
-        <span className="DiscordInviteCard-heading">{app.translator.trans('fof-discord-autolink.forum.invite.heading')}</span>
+      <span className={event ? 'DiscordInviteCard DiscordInviteCard--event' : 'DiscordInviteCard'}>
+        <span className="DiscordInviteCard-heading">
+          {app.translator.trans(event ? 'fof-discord-autolink.forum.event.heading' : 'fof-discord-autolink.forum.invite.heading')}
+        </span>
+        {event && this.event(event)}
         <span className="DiscordInviteCard-body">
           {this.icon()}
           <span className="DiscordInviteCard-info">
@@ -31,6 +34,51 @@ export default class DiscordInviteCard extends Component<DiscordInviteCardAttrs>
           </span>
           <span className="Button Button--primary DiscordInviteCard-join">{app.translator.trans('fof-discord-autolink.forum.invite.join')}</span>
         </span>
+      </span>
+    );
+  }
+
+  event(event: DiscordEvent): Mithril.Children {
+    return (
+      <span className="DiscordInviteCard-event">
+        {event.imageUrl && <img className="DiscordInviteCard-eventImage" src={event.imageUrl} alt="" loading="lazy" />}
+        {this.eventTime(event)}
+        <span className="DiscordInviteCard-eventName">{event.name}</span>
+        {event.description && <span className="DiscordInviteCard-eventDescription">{event.description}</span>}
+        <span className="DiscordInviteCard-eventMeta">
+          {event.channelName && (
+            <span className="DiscordInviteCard-eventChannel">
+              <i className="fas fa-microphone" aria-hidden="true" />
+              {event.channelName}
+            </span>
+          )}
+          {event.interestedCount !== null && (
+            <span className="DiscordInviteCard-eventInterested">
+              <i className="fas fa-user-friends" aria-hidden="true" />
+              {app.translator.trans('fof-discord-autolink.forum.event.interested', { count: formatNumber(event.interestedCount) })}
+            </span>
+          )}
+        </span>
+      </span>
+    );
+  }
+
+  eventTime(event: DiscordEvent): Mithril.Children {
+    const status = event.status || 'scheduled';
+
+    const label =
+      status === 'scheduled'
+        ? event.startsAt && (
+            <time datetime={event.startsAt} title={dayjs(event.startsAt).format('LLLL')}>
+              {dayjs(event.startsAt).format('llll')}
+            </time>
+          )
+        : app.translator.trans(`fof-discord-autolink.forum.event.${status}`);
+
+    return (
+      <span className={`DiscordInviteCard-eventTime DiscordInviteCard-eventTime--${status}`}>
+        <i className={status === 'active' ? 'fas fa-broadcast-tower' : 'far fa-calendar'} aria-hidden="true" />
+        {label}
       </span>
     );
   }
