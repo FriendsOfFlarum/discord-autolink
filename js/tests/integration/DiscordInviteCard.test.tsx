@@ -2,10 +2,10 @@ import bootstrapForum from '@flarum/jest-config/src/bootstrap/forum';
 import app from 'flarum/forum/app';
 import m from 'mithril';
 import mq from 'mithril-query';
-import dayjs from 'dayjs';
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import DiscordInviteCard from '../../src/forum/components/DiscordInviteCard';
 import type { DiscordInvite } from '../../src/forum/types';
+import { exposeDayjs, loadTranslations } from '../helpers';
 
 const serverInvite: DiscordInvite = {
   code: 'G8MGEsC53',
@@ -29,27 +29,9 @@ function text(card: ReturnType<typeof mq>, selector: string): string | null {
 }
 
 beforeAll(() => {
-  // In the browser, Flarum exposes dayjs as a global; @flarum/jest-config does not.
-  (globalThis as any).dayjs = dayjs;
-
+  exposeDayjs();
   bootstrapForum();
-
-  app.translator.addTranslations({
-    'fof-discord-autolink.forum.invite.heading': "You've been invited to join a server",
-    'fof-discord-autolink.forum.invite.online': '{count} Online',
-    'fof-discord-autolink.forum.invite.members': '{count} Members',
-    'fof-discord-autolink.forum.invite.join': 'Join',
-    'fof-discord-autolink.forum.invite.verified': 'Verified',
-    'fof-discord-autolink.forum.invite.invalid_heading': "You've been invited to join a server, but…",
-    'fof-discord-autolink.forum.invite.invalid_title': 'Invalid Invite',
-    'fof-discord-autolink.forum.invite.invalid_text': 'This invite may be expired, or you might not have permission to join.',
-    'fof-discord-autolink.forum.event.heading': "You've been invited to an event",
-    'fof-discord-autolink.forum.event.interested': '{count} interested',
-    'fof-discord-autolink.forum.event.active': 'Happening now',
-    'fof-discord-autolink.forum.event.completed': 'This event has ended',
-    'fof-discord-autolink.forum.event.canceled': 'This event was cancelled',
-    'fof-discord-autolink.forum.invite.partnered': 'Discord Partner',
-  });
+  loadTranslations();
 });
 
 describe('DiscordInviteCard for a server invite', () => {
