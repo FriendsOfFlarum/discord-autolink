@@ -23,7 +23,10 @@ export default class DiscordInviteCard extends Component<DiscordInviteCardAttrs>
         <span className="DiscordInviteCard-body">
           {this.icon()}
           <span className="DiscordInviteCard-info">
-            <span className="DiscordInviteCard-name">{guild.name}</span>
+            <span className="DiscordInviteCard-name">
+              {this.badge()}
+              {guild.name}
+            </span>
             <span className="DiscordInviteCard-stats">{this.stats()}</span>
           </span>
           <span className="Button Button--primary DiscordInviteCard-join">{app.translator.trans('fof-discord-autolink.forum.invite.join')}</span>
@@ -35,7 +38,38 @@ export default class DiscordInviteCard extends Component<DiscordInviteCardAttrs>
   icon(): Mithril.Children {
     const { guild } = this.attrs.invite;
 
-    return <img className="DiscordInviteCard-icon" src={guild.iconUrl} alt="" loading="lazy" />;
+    if (guild.iconUrl) {
+      return <img className="DiscordInviteCard-icon" src={guild.iconUrl} alt="" loading="lazy" />;
+    }
+
+    // Like Discord, stand in for a missing icon with the server's initials.
+    const acronym = (guild.name || '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) => Array.from(word)[0])
+      .join('')
+      .slice(0, 5);
+
+    return (
+      <span className="DiscordInviteCard-icon DiscordInviteCard-icon--acronym" aria-hidden="true">
+        {acronym}
+      </span>
+    );
+  }
+
+  badge(): Mithril.Children {
+    const { guild } = this.attrs.invite;
+    const type = guild.verified ? 'verified' : guild.partnered ? 'partnered' : null;
+
+    if (!type) return null;
+
+    const label = app.translator.trans(`fof-discord-autolink.forum.invite.${type}`, {}, true);
+
+    return (
+      <span className={`DiscordInviteCard-badge DiscordInviteCard-badge--${type}`} title={label} aria-label={label}>
+        <i className={type === 'verified' ? 'fas fa-check' : 'fas fa-infinity'} aria-hidden="true" />
+      </span>
+    );
   }
 
   stats(): Mithril.Children {
