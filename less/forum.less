@@ -17,12 +17,13 @@
   text-decoration: none;
   vertical-align: baseline;
 
-  .fa-discord {
+  // Direct children only, so card icons inside an upgraded link are unaffected.
+  > .fa-discord {
     color: @discord-blurple;
   }
 
-  .fas,
-  .far {
+  > .fas,
+  > .far {
     font-size: 0.85em;
     color: var(--muted-color);
   }
@@ -39,6 +40,11 @@
     text-decoration: none;
     background-color: var(--control-bg-shaded);
   }
+}
+
+// Posts underline and embolden links; chips and cards bring their own styling.
+.Post-body a.DiscordEmbed {
+  border-bottom: 0;
 }
 
 // Invite link upgraded to a card: the whole card stays one link.
@@ -72,6 +78,7 @@
   border-radius: 8px;
   background-color: var(--body-bg-shaded, var(--control-bg));
   color: var(--text-color);
+  font-weight: normal;
   line-height: 1.3;
 }
 
