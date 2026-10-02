@@ -111,4 +111,32 @@ class InviteEndpointTest extends TestCase
         $this->assertSame(404, $response->getStatusCode(), (string) $response->getBody());
         $this->assertSame('not_found', $this->json($response)['errors'][0]['code']);
     }
+
+    #[Test]
+    public function an_event_invite_includes_the_scheduled_event()
+    {
+        $this->fakeDiscord([$this->fixture('event-invite.json')]);
+
+        $response = $this->getInvite('te7dMZm8', ['event' => '1555683235751792691']);
+
+        $this->assertSame(200, $response->getStatusCode(), (string) $response->getBody());
+
+        $data = $this->json($response);
+
+        $this->assertSame('https://discord.gg/te7dMZm8?event=1555683235751792691', $data['url']);
+        $this->assertSame([
+            'id'              => '1555683235751792691',
+            'name'            => 'Good things come in twos',
+            'description'     => null,
+            'startsAt'        => '2026-10-09T18:00:00+00:00',
+            'endsAt'          => null,
+            'status'          => 'scheduled',
+            'interestedCount' => 2,
+            'imageUrl'        => null,
+            'channelName'     => 'flarum-stage',
+        ], $data['event']);
+
+        $sent = $this->discordRequests[0]['request'];
+        $this->assertSame('https://discord.com/api/v10/invites/te7dMZm8?with_counts=true&guild_scheduled_event_id=1555683235751792691', (string) $sent->getUri());
+    }
 }

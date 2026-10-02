@@ -29,6 +29,9 @@ class ShowInviteController implements RequestHandlerInterface
     {
         $code = (string) Arr::get($request->getAttribute('routeParameters'), 'code');
 
-        return new JsonResponse($this->invites->find($code));
+        $event = Arr::get($request->getQueryParams(), 'event');
+        $event = is_string($event) && ctype_digit($event) ? $event : null;
+
+        return new JsonResponse($this->invites->find($code, $event));
     }
 }
