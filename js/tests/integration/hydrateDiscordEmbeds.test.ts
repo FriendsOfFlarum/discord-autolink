@@ -78,4 +78,51 @@ describe('hydrateDiscordEmbeds', () => {
     expect(link.querySelector('.DiscordInviteCard-name')!.textContent).toBe('Flarum');
     expect(link.querySelector('.DiscordInviteCard-online')!.textContent).toBe('98 Online');
   });
+
+  it('passes the event through for event invites', async () => {
+    const request = apiResponds(async () => invite);
+    const root = post(inviteLink('te7dMZm8', '1555683235751792691'));
+
+    hydrateDiscordEmbeds(root);
+    await settle();
+
+    expect(request.mock.calls[0][0]).toMatchObject({
+      url: 'https://forum.test/api/discord/invites/te7dMZm8',
+      params: { event: '1555683235751792691' },
+    });
+  });
+
+  it('looks each invite up once, however often it appears or is hydrated', async () => {
+    const request = apiResponds(async () => invite);
+    const root = post(`${inviteLink('G8MGEsC53')} and again ${inviteLink('G8MGEsC53')}`);
+
+    hydrateDiscordEmbeds(root);
+    hydrateDiscordEmbeds(root);
+    await settle();
+
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(root.querySelectorAll('.DiscordInviteCard')).toHaveLength(2);
+  });
+
+  it('shows the invalid invite card when the invite is unknown', async () => {
+    apiResponds(() => Promise.reject({ status: 404 }));
+    const root = post(inviteLink('expired123'));
+
+    hydrateDiscordEmbeds(root);
+    await settle();
+
+    expect(root.querySelector('.DiscordInviteCard--invalid')).not.toBeNull();
+  });
+
+  it('leaves the plain link alone when the lookup fails for another reason', async () => {
+    apiResponds(() => Promise.reject({ status: 502 }));
+    const root = post(inviteLink('G8MGEsC53'));
+
+    hydrateDiscordEmbeds(root);
+    await settle();
+
+    expect(root.querySelector('.DiscordInviteCard')).toBeNull();
+    expect(root.querySelector('.DiscordEmbed-label')!.textContent).toBe('discord.gg/G8MGEsC53');
+    expect(root.querySelector('a')!.classList.contains('DiscordEmbed--card')).toBe(false);
+  });
 });
