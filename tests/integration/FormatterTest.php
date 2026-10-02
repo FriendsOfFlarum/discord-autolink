@@ -97,4 +97,16 @@ class FormatterTest extends TestCase
         $this->assertStringContainsString('data-discord-invite="G8MGEsC53"', $html);
         $this->assertOpensInNewTab($html, 2);
     }
+
+    #[Test]
+    public function it_renders_an_event_invite()
+    {
+        $html = $this->render('Come along! https://discord.gg/te7dMZm8?event=1555683235751792691');
+
+        $this->assertStringContainsString('DiscordEmbed--invite', $html);
+        $this->assertStringContainsString('href="https://discord.gg/te7dMZm8?event=1555683235751792691"', $html);
+        $this->assertStringContainsString('data-discord-invite="te7dMZm8"', $html);
+        $this->assertStringContainsString('data-discord-event="1555683235751792691"', $html);
+        $this->assertOpensInNewTab($html);
+    }
 }

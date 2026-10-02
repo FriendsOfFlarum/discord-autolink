@@ -22,7 +22,7 @@ use s9e\TextFormatter\Configurator\Items\Tag;
  */
 class Configurator extends Discord
 {
-    protected string $regexp = '/\bhttps?:\/\/(?:www\.)?(?:discord\.gg|discord(?:app)?\.com\/invite)\/([A-Za-z0-9-]{2,32})(?![\w-])/i';
+    protected string $regexp = '/\bhttps?:\/\/(?:www\.)?(?:discord\.gg|discord(?:app)?\.com\/invite)\/([A-Za-z0-9-]{2,32})(?![\w-])(?:\/?\?event=(\d{17,20})\b)?/i';
     protected ?string $tagName = 'DISCORDINVITE';
 
     protected function getClassName(): string
@@ -33,16 +33,18 @@ class Configurator extends Discord
     protected function getSpecificAttributes(Tag $tag): void
     {
         $tag->attributes->add('code');
+        $tag->attributes->add('event')->required = false;
     }
 
     protected function getTemplateHref(): string
     {
-        return 'https://discord.gg/<xsl:value-of select="@code"/>';
+        return 'https://discord.gg/<xsl:value-of select="@code"/><xsl:if test="@event">?event=<xsl:value-of select="@event"/></xsl:if>';
     }
 
     protected function getTemplateDataAttributes(): string
     {
-        return '<xsl:attribute name="data-discord-invite"><xsl:value-of select="@code"/></xsl:attribute>';
+        return '<xsl:attribute name="data-discord-invite"><xsl:value-of select="@code"/></xsl:attribute>'
+            .'<xsl:if test="@event"><xsl:attribute name="data-discord-event"><xsl:value-of select="@event"/></xsl:attribute></xsl:if>';
     }
 
     protected function getTemplateContent(): string
