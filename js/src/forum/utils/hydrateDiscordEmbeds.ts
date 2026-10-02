@@ -1,5 +1,4 @@
 import app from 'flarum/forum/app';
-import m from 'mithril';
 import DiscordInviteCard from '../components/DiscordInviteCard';
 import fetchInvite from './fetchInvite';
 
