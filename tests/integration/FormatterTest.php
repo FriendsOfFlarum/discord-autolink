@@ -85,4 +85,16 @@ class FormatterTest extends TestCase
         $this->assertStringNotContainsString('data-discord-event', $html);
         $this->assertOpensInNewTab($html);
     }
+
+    #[Test]
+    public function it_renders_discord_com_and_discordapp_com_invites_as_canonical_discord_gg_links()
+    {
+        $html = $this->render('https://discord.com/invite/flarum and https://discordapp.com/invite/G8MGEsC53');
+
+        $this->assertStringContainsString('href="https://discord.gg/flarum"', $html);
+        $this->assertStringContainsString('data-discord-invite="flarum"', $html);
+        $this->assertStringContainsString('href="https://discord.gg/G8MGEsC53"', $html);
+        $this->assertStringContainsString('data-discord-invite="G8MGEsC53"', $html);
+        $this->assertOpensInNewTab($html, 2);
+    }
 }
