@@ -52,7 +52,7 @@
             "category": "feature",
             "icon": {
                 "name": "fab fa-discord",
-                "backgroundColor": "#5865F2",
+                "backgroundColor": "#e74c3c",
                 "color": "#fff"
             }
         },
