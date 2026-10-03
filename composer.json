@@ -12,7 +12,8 @@
     "license": "MIT",
     "support": {
         "issues": "https://github.com/FriendsOfFlarum/discord-autolink/issues",
-        "source": "https://github.com/FriendsOfFlarum/discord-autolink"
+        "source": "https://github.com/FriendsOfFlarum/discord-autolink",
+        "forum": "https://discuss.flarum.org/d/39976"
     },
     "homepage": "https://friendsofflarum.org",
     "funding": [
